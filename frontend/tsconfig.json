@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode - dla Vite */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,           // TS tylko sprawdza typy, Vite kompiluje
+
+    /* Strict type checking */
+    "strict": true,           // włącza wszystkie flagi poniżej
+    "noUnusedLocals": true,   // błąd gdy zmienna nie jest używana
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}
