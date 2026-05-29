@@ -1,6 +1,8 @@
 import React, { useState } from "react"; 
 import {validateEmail, validatePassword} from '../utilities/validations.js'
 import { Link } from "react-router-dom";
+import {  registerApi, loginApi  } from '../apis/authentication.js'
+import {  useNavigate  } from  'react-router-dom'
 
 const initialErrorState = {
     email: '',
@@ -16,33 +18,78 @@ export enum PageType {
 interface AuthenticationProps {
     pageType: PageType;
 }
+
 const Authentication = ({pageType}: AuthenticationProps) => {
+    const navigate = useNavigate();
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [errors, setErrors] = useState(initialErrorState)
+    
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value)
     }
+    
     const handlePasswordChange = (p: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(p.target.value)
     }
-    const handleSubmit = (e: React.SubmitEvent) => { 
-        e.preventDefault()
+    
+    const handleResponse = (result: unknown, error: string, currentErrors: typeof initialErrorState) => {
+            if (error) {
+                // FIX 2: currentErrors zamiast errors ze stanu
+                setErrors({
+                    ...currentErrors,
+                    api: error
+                })
+            } else {
+                navigate('/')
+            }
+        }
+
+
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => { 
+        e.preventDefault();
+
+        let newErrors = {...initialErrorState}
+        
         if(!validateEmail(email)) {
-            setErrors ({
-                ...errors,
+            newErrors = {
+                ...newErrors,
                 email: 'Invalid email'
-            })
+            }
         }
         if(!validatePassword(password)) {
-            setErrors({
-                ...errors,
+            newErrors = {
+                ...newErrors,
                 password: 'Password should be at least 6 characters long'
-            })
+            }
         }
-        //add api call
-        
-    }
+
+        setErrors(newErrors)
+
+        const hasErrors = Object.values(newErrors).some(error => error !== '');
+        if(hasErrors) {
+            return
+        }
+
+        if(pageType === PageType.LOGIN) {
+            const [result,error] = await loginApi({
+                user: {
+                    email: email,
+                    password: password
+                }
+            })
+            handleResponse(result,error,newErrors)
+        }else {
+            const [result,error] = await registerApi({
+                user: {
+                    email: email,
+                    password: password
+                }
+            })
+            handleResponse(result,error,newErrors)
+        }
+    }   
+    
 
     return (
         <div className="bg-white">
