@@ -1,11 +1,10 @@
+import React from 'react';
 import { StrictMode } from 'react'
 import  ReactDOM  from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import { CookiesProvider } from 'react-cookie';
 import Authentication, { PageType } from './pages/Authentication';
 
 let router = createBrowserRouter([
@@ -35,6 +34,8 @@ if (!root) throw new Error('Element #root nie został znaleziony w index.html')
 
 ReactDOM.createRoot(root).render(
   <StrictMode>
-    <RouterProvider router={router} />
+     <CookiesProvider defaultSetOptions={{ path: '/' }}>
+      <RouterProvider router={router} />
+    </CookiesProvider>   
   </StrictMode>,
 )

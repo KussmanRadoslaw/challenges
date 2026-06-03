@@ -1,8 +1,9 @@
-import React, { useState } from "react"; 
+import React, { useEffect, useState } from "react"; 
 import {validateEmail, validatePassword} from '../utilities/validations.js'
 import { Link } from "react-router-dom";
 import {  registerApi, loginApi  } from '../apis/authentication.js'
 import {  useNavigate  } from  'react-router-dom'
+import { useCookies } from 'react-cookie'
 
 const initialErrorState = {
     email: '',
@@ -20,11 +21,17 @@ interface AuthenticationProps {
 }
 
 const Authentication = ({pageType}: AuthenticationProps) => {
+    const [cookies, setCookie] = useCookies(['jwtToken']);
     const navigate = useNavigate();
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [errors, setErrors] = useState(initialErrorState)
     
+    useEffect(() => {
+        if(cookies.jwtToken) {
+        navigate('/')
+    }}, [cookies.jwtToken])
+
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value)
     }
@@ -33,14 +40,20 @@ const Authentication = ({pageType}: AuthenticationProps) => {
         setPassword(p.target.value)
     }
     
-    const handleResponse = (result: unknown, error: string, currentErrors: typeof initialErrorState) => {
+    const handleResponse =  (result: Response | null, error: string, currentErrors: typeof initialErrorState) => {
             if (error) {
-                // FIX 2: currentErrors zamiast errors ze stanu
                 setErrors({
                     ...currentErrors,
                     api: error
                 })
             } else {
+                const jwtToken =  result?.headers.get('Authorization')
+                if(!jwtToken) {
+                    setErrors({...currentErrors, api: 'No auth token' })
+                    return
+                }
+                setCookie('jwtToken', jwtToken)
+                //console.log("cookies: ", jwtToken)
                 navigate('/')
             }
         }
@@ -145,7 +158,9 @@ const Authentication = ({pageType}: AuthenticationProps) => {
                             onChange={handlePasswordChange}
                         ></input>
                         {errors.password && <p className='text-sm text-medium text-red-400 mt-1'>{errors.password}</p>}
-                    </div>  
+                        
+                    </div> 
+                    
                     <div>  
                         <button type="submit" className='bg-indigo-500 hover:bg-indigo-600 px-3 py-2 rounded text-white'>
                             {pageType === PageType.LOGIN ? 'Login' : 'Register'  }
